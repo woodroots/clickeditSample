@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css"
+        integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+        h2 {
+            font-size: 1.4rem;
+            font-weight: bold;
+        }
+
+        h3 {
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="app">
+        <div class="container">
+            <div class="row my-5 align-items-center">
+                <div class="col-12">
+                    <h2>単一データの場合なら簡単</h2>
+                </div>
+                <div class="col-3">
+                    <strong>単一のデータ</strong>
+                </div>
+                <div class="col-9">
+                    <div v-if="!edit" class="border p-2  bg-light" v-on:click="doEdit">{{ value }}</div>
+                    <input v-else type="text" class="form-control" v-model="value" v-on:blur="edit = false" v-focus>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <h2>配列の場合</h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-12">
+                    <h3>配列に監視用データを追加して使う</h3>
+                </div>
+            </div>
+            <div class="row py-2 align-items-center" v-for="(item,index) in array1" :key="'array1' + index">
+                <div class="col-3">
+                    {{ index }}個目のデータ
+                </div>
+                <div class="col-9">
+                    <div v-if="!item.valueChecker" class="border p-2 bg-light" v-on:click="doEditArray1(index)">
+                        {{ item.value }}
+                    </div>
+                    <input v-else type="text" class="form-control" v-model="item.value"
+                        v-on:blur="item.valueChecker = false" v-focus>
+                </div>
+            </div>
+            <div class="row bg-light mb-5 ">
+                <div class="col">
+                    <div class="p-3">
+                        <p>元配列</p>
+                        <pre>{{ toRaw(array1) }}</pre>
+                    </div>
+                </div>
+
+            </div>
+
+
+            <div class="row">
+                <div class="col-12">
+                    <h3>変更監視用配列を生成して使う</h3>
+                </div>
+            </div>
+            <div class="row py-2 align-items-center" v-for="(item,index) in array2" :key="'array2' + index">
+                <div class="col-3">
+                    <div v-if="!arrayChecker[index].name" class="border p-2 bg-light"
+                        v-on:click="doEditArray2(index,'name')">
+                        {{ item.name }}
+                    </div>
+                    <input v-else type="text" class="form-control" v-model="item.name"
+                        v-on:blur="arrayChecker[index].name = false" v-focus>
+                </div>
+                <div class="col-9">
+                    <div v-if="!arrayChecker[index].value" class="border p-2 bg-light"
+                        v-on:click="doEditArray2(index,'value')">
+                        {{ item.value }}
+                    </div>
+                    <input v-else type="text" class="form-control" v-model="item.value"
+                        v-on:blur="arrayChecker[index].value = false" v-focus>
+                </div>
+            </div>
+
+            <div class="row bg-light">
+                <div class="col">
+                    <div class="p-3">
+                        <p>元配列</p>
+                        <pre>{{ toRaw(array2) }}</pre>
+                    </div>
+                </div>
+                <div class="col">
+                    <div class="p-3">
+                        <p>チェック用配列</p>
+                        <pre>{{ toRaw(arrayChecker) }}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.15/lodash.min.js"></script>
+
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                //単一の場合は単にデータを持てばよい
+                value: 'クリックしてみてね',
+                edit: false,
+                //配列の場合（データを足す）
+                array1: [{
+                        value: 'ほげほげ'
+                    },
+                    {
+                        value: 'ふがふが'
+                    },
+                    {
+                        value: 'ふーばー'
+                    }
+                ],
+                //配列の場合（監視用に配列を複製して使う）
+                array2: [{
+                        name: 'なまえです',
+                        value: 'あいうえお'
+                    },
+                    {
+                        name: 'かきくです',
+                        value: 'かきくけこ'
+                    },
+                    {
+                        name: 'さしこです',
+                        value: 'さしすせそ'
+                    },
+                    {
+                        name: 'たろうです',
+                        value: 'たちつてと'
+                    },
+                ],
+                arrayChecker: []
+            },
+            computed: {
+                //確認用だけ
+                toRaw() {
+                    var vm = this;
+                    return function (val) {
+                        return JSON.stringify(val, null, 2);
+                    }
+                }
+            },
+            created() {
+                var vm = this;
+                //チェック用データを足す
+                var addArray = _.cloneDeepWith(vm.array1, function (val) {
+                    if (typeof val.value != 'undefined') {
+                        val.valueChecker = false;
+                    }
+                });
+                vm.array1 = addArray;
+                //チェック用の配列を作る
+                vm.arrayChecker = _.cloneDeepWith(vm.array2, function (val) {
+                    if (!_.isObject(val)) {
+                        return false;
+                    }
+
+                });
+            },
+            directives: {
+                focus: {
+                    // ディレクティブ定義
+                    inserted: function (el) {
+                        el.focus();
+                    }
+                }
+            },
+            methods: {
+                doEdit() {
+                    this.edit = true;
+                },
+                doEditArray1(index) {
+                    this.array1[index].valueChecker = true;
+                },
+                doEditArray2(index, key) {
+                    this.arrayChecker[index][key] = true;
+                }
+            }
+
+        });
+    </script>
+</body>
+
+</html>
